@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 应用主题：跟随系统颜色，无标题栏，窗口底色为白 -->
+<resources>
+    <style name="Theme.Shuati" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/white</item>
+    </style>
+</resources>

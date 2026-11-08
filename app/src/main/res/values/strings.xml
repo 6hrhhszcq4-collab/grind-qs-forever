@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 全局字符串：桌面显示名与页面标题都用它 -->
+<resources>
+    <string name="app_name">刷题</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只有 debug 包允许明文 HTTP。
+     原因：11 的验收要连本机的 mock WebDAV（http://10.0.2.2:8099），
+     而 release 包默认禁止明文 HTTP（targetSdk 28+ 的系统策略），这是对的——
+     真实用户用的是 https 的 WebDAV（坚果云等），不该为了测试放松 release 的安全策略。
+     正式包 app/src/main/AndroidManifest.xml 里没有这一条，交付的 APK 仍然是「只许 https」。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application android:usesCleartextTraffic="true" />
+
+</manifest>
