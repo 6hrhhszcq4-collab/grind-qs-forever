@@ -1,0 +1,16 @@
+# 构建产物与本地配置，不纳入版本管理
+.gradle/
+.gradle-home/
+.kotlin/
+build/
+app/build/
+local.properties
+_tmp/
+dist/
+*.iml
+.idea/
+
+# v1.5：开源前补上——正式签名和内置源凭据绝不进仓库
+app/release.keystore
+*签名信息*
+

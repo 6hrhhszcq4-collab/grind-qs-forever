@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 网络安全配置（v1.4 测试用）：
+     自建 WebDAV 源经常是内网 http（例如模拟器里的 http://10.0.2.2:8099/dav/），
+     targetSdk 28+ 默认禁止明文 HTTP，这里只对「本机 / 模拟器宿主」放行，
+     其余域名仍然强制 HTTPS（正式网盘源走 https 不受影响）。 -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+</network-security-config>

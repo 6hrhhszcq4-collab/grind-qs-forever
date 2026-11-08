@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 应用清单：只有主界面，竖屏锁定。
+     06B 起唯一新增的权限是 INTERNET（从题库源下载试卷）；
+     本地导入用系统文件选择器（SAF），不需要任何存储权限，所以一个都不加。
+     07 起图标换成蓝底白字「刷」：方形 ic_launcher + 圆形 ic_launcher_round，
+     都是普通 PNG（不用 Adaptive Icon 的 XML，避免新手配错）。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:theme="@style/Theme.Shuati">
+
+        <!-- 唯一的活动页：锁竖屏 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
