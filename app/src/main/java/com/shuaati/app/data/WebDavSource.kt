@@ -25,19 +25,14 @@ import java.net.URL
 import java.net.UnknownHostException
 import javax.net.ssl.SSLException
 
-// ===== 内置默认源（v1.5：双版本，凭据不再硬编码在这里）=====
-//
-// 特供版（internal）：默认源地址 / 账号 / 应用密码从本机 local.properties 读，
-// 经 BuildConfig 注入；开源仓库里看不到任何凭据。
-// 社区版（community）：HAS_BUILTIN_SOURCE=false，这四个值全是空字符串，
-// SourceStore 不会创建默认源，首次启动让用户自己新增源或本地导入。
-//
-// 默认源被删掉之后「恢复默认源」仍然靠这几个值重建。
+// ===== 内置默认源 =====
+// 地址 / 账号 / 应用密码从本机 local.properties 读，经 BuildConfig 注入，源码里不含凭据。
+// HAS_BUILTIN_SOURCE=false 时这四个值为空，不创建默认源。
 internal val HAS_BUILTIN_SOURCE: Boolean = com.shuaati.app.BuildConfig.HAS_BUILTIN_SOURCE
 internal val WEBDAV_BASE_URL: String = com.shuaati.app.BuildConfig.DEFAULT_SOURCE_BASE_URL
 internal val WEBDAV_USER: String = com.shuaati.app.BuildConfig.DEFAULT_SOURCE_USER
 
-// 坚果云「应用密码」，不是登录密码；只存在于出特供包的 local.properties 里。
+// 应用密码（不是登录密码），只存在于本机 local.properties 里。
 internal val WEBDAV_PASS: String = com.shuaati.app.BuildConfig.DEFAULT_SOURCE_PASS
 
 /** 默认源的相对目录 */

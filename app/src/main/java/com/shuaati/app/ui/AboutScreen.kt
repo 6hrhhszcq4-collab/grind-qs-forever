@@ -78,10 +78,7 @@ private const val TAP_COUNT_NEEDED = 7
 /** 最多允许输错几次 */
 private const val MAX_PASSWORD_ATTEMPTS = 3
 
-/**
- * 开源仓库地址（v1.5：与 local.properties 的 shuaati.githubRepo 保持一致）。
- * 社区版与特供版共用同一个仓库；特供版的差异只在内置源。
- */
+/** 开源仓库地址（与 local.properties 的 shuaati.githubRepo 保持一致） */
 private const val REPO_URL = "https://github.com/6hrhhszcq4-collab/grind-qs-forever"
 
 /**

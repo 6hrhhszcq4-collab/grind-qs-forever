@@ -435,7 +435,7 @@ private fun SourcePage(
         modifier = Modifier.fillMaxWidth(),
     )
     Spacer(Modifier.height(Spacing.xs))
-    // v1.5：社区版没有内置源，不显示「默认源」相关文案与按钮
+    // 没有内置源时不显示「默认源」相关文案与按钮
     if (BuildConfig.HAS_BUILTIN_SOURCE) {
         Text(
             text = "默认源已经配好，点一下就能用。",

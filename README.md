@@ -33,6 +33,11 @@ shuaati.keyPassword=...
 shuaati.githubRepo=owner/repo
 ```
 
+## 调试模式
+
+关于页版本号连点 7 次 → 输入调试密码 `AyqLt4fj5JoGEb` → 设置页出现「打开调试面板」。
+打开后 App 在 `127.0.0.1:8765` 监听命令端口（协议见 [docs/调试协议.md](docs/调试协议.md)）。
+
 ## 文档
 
 - [题库 JSON 格式](docs/题库格式.md)

@@ -13,10 +13,7 @@ val localProps = Properties().apply {
 // 正式签名文件的位置固定：app\release.keystore
 val releaseKeystore = rootProject.file("app/release.keystore")
 
-// ===== v1.5：双版本（社区版 / 特供版）=====
-// 社区版（community）：开源发布，不内置任何题库源，首次启动让用户自己填源或本地导入。
-// 特供版（internal）：内置坚果云默认源，凭据只从本机 local.properties 读，绝不进仓库。
-// 两个 flavor 用同一个 applicationId + 同一个正式签名 → 可以互相覆盖安装、数据互通。
+// 内置默认源配置：从本机 local.properties 读，不进仓库
 val defaultSourceBaseUrl = localProps.getProperty("shuaati.defaultSource.baseUrl") ?: ""
 val defaultSourceUser = localProps.getProperty("shuaati.defaultSource.user") ?: ""
 val defaultSourcePass = localProps.getProperty("shuaati.defaultSource.pass") ?: ""
@@ -44,16 +41,15 @@ android {
         minSdk = 28
         // 目标版本与编译版本一致
         targetSdk = 36
-        // v1.5：关于页按 Material 重做 + 考试防截屏 + 平板提示 + 调试端口（versionCode 6）。
         // 版本号可以改，签名不能换——继续用 app/release.keystore，否则覆盖安装会失败。
-        versionCode = 6
-        versionName = "1.5"
+        versionCode = 7
+        versionName = "1.6"
 
-        // v1.5：应用自身更新检查（GitHub Releases）
+        // 应用自身更新检查仓库
         buildConfigField("String", "GITHUB_REPO", "\"$githubRepo\"")
     }
 
-    // v1.5：社区版 / 特供版两个 flavor（同包名、同签名，数据互通）
+    // 两个 flavor：一个带内置源配置，一个不带；界面与按钮完全一致。
     flavorDimensions += "edition"
     productFlavors {
         create("community") {

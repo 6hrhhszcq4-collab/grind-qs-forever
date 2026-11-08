@@ -14,6 +14,7 @@
 package com.shuaati.app
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -78,6 +79,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import com.shuaati.app.data.AppSettings
+import com.shuaati.app.data.AppUpdate
+import com.shuaati.app.data.AppUpdateChecker
 import com.shuaati.app.data.DebugServer
 import com.shuaati.app.data.Diagnostics
 import com.shuaati.app.data.ExamBuilder
@@ -126,6 +129,7 @@ import com.shuaati.app.ui.components.AppButton
 import com.shuaati.app.ui.components.AppButtonStyle
 import com.shuaati.app.ui.components.FullScreenDialog
 import com.shuaati.app.ui.components.SectionCard
+import com.shuaati.app.ui.components.UpdateBanner
 import com.shuaati.app.ui.computeHomeStats
 import com.shuaati.app.ui.theme.AppText
 import com.shuaati.app.ui.theme.ComponentSize
@@ -283,6 +287,10 @@ private fun AppRoot(settings: AppSettings) {
     var pendingUpdate by remember { mutableStateOf<PaperUpdate?>(null) }
     // 设置页「检查更新」按钮是否正在跑
     var checkingUpdate by remember { mutableStateOf(false) }
+
+    // 启动后自动检查一次应用更新
+    var appUpdate by remember { mutableStateOf<AppUpdate?>(null) }
+    var appUpdateDismissed by remember { mutableStateOf(false) }
     // 正在下载并替换题库
     var updating by remember { mutableStateOf(false) }
     // 本次启动里点过「以后再说」的版本：paperId -> version。
@@ -308,6 +316,28 @@ private fun AppRoot(settings: AppSettings) {
             DebugServer.start(appContext)
         } else {
             DebugServer.stop()
+        }
+    }
+
+    // 启动后自动检查应用更新
+    LaunchedEffect(Unit) {
+        if (BuildConfig.HAS_BUILTIN_SOURCE) return@LaunchedEffect
+        delay(3_000)
+        val update = runCatching { AppUpdateChecker.check() }.getOrNull()
+        if (update != null) {
+            appUpdate = update
+        }
+    }
+
+    /** 打开 GitHub 下载页（交给浏览器） */
+    fun openAppUpdate(update: AppUpdate) {
+        runCatching {
+            appContext.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(update.downloadUrl))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }.onFailure {
+            Toast.makeText(appContext, "打不开下载页", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -531,6 +561,7 @@ private fun AppRoot(settings: AppSettings) {
     }
 
     val current = session
+    Box(modifier = Modifier.fillMaxSize()) {
     when {
         loading -> StartupScreen(message = "正在准备试卷库…")
 
@@ -567,6 +598,7 @@ private fun AppRoot(settings: AppSettings) {
         // v1.3：一套试卷都没有 → 首页空状态（不白屏、不崩）
         current == null -> EmptyPaperScreen(
             hasLegacyData = remember { repo.hasLegacyData() },
+            hasSource = remember { sourceStore.load().sources.isNotEmpty() },
             onDownload = { loadEmptyIndex() },
             onLocalImport = { emptyOpenDocument.launch(arrayOf("application/json")) },
             onOpenSources = { showSourceManagerFromEmpty = true },
@@ -587,6 +619,20 @@ private fun AppRoot(settings: AppSettings) {
             importMessage = importMessage,
             onImportMessage = { importMessage = it },
         )
+    }
+
+    val bannerUpdate = appUpdate
+    if (bannerUpdate != null && !appUpdateDismissed) {
+        UpdateBanner(
+            title = "发现新版本 ${bannerUpdate.versionName}",
+            subtitle = "点击更新，用浏览器打开下载页",
+            onAction = { openAppUpdate(bannerUpdate) },
+            onDismiss = { appUpdateDismissed = true },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding(),
+        )
+    }
     }
 
     // 引导页的「配置自己的 WebDAV」弹窗：与源管理页复用同一个 SourceEditDialog
@@ -1115,6 +1161,7 @@ private fun PaperApp(
     BackHandler(enabled = overlay != null && overlay != Overlay.EXAM) { goBack() }
 
     val currentOverlay = overlay
+    Box(modifier = Modifier.fillMaxSize()) {
     if (currentOverlay == null) {
         // ===== 顶部层级：底部三 Tab =====
         Scaffold(
@@ -1336,6 +1383,7 @@ private fun PaperApp(
                 onBack = { goBack() },
             )
         }
+    }
     }
 
     // ===== 弹窗区 =====
@@ -1704,6 +1752,7 @@ private const val STARTUP_CHECK_DELAY_MS = 3_000L
 @Composable
 private fun EmptyPaperScreen(
     hasLegacyData: Boolean,
+    hasSource: Boolean,
     onDownload: () -> Unit,
     onLocalImport: () -> Unit,
     onOpenSources: () -> Unit,
@@ -1721,23 +1770,34 @@ private fun EmptyPaperScreen(
         Text(text = "还没有题库", style = AppText.pageTitle, color = c.textPrimary)
         Spacer(Modifier.height(Spacing.sm))
         Text(
-            text = "从题库源下载一套，或从手机里选择一个题库文件导入。拿到题库后就能开始刷题。",
+            text = if (hasSource) {
+                "从题库源下载一套，或从手机里选择一个题库文件导入。拿到题库后就能开始刷题。"
+            } else {
+                "还没有配置题库源。先配置一个自己的 WebDAV 源，或者从手机里选择题库文件导入。"
+            },
             style = AppText.small,
             color = c.textSecondary,
         )
         Spacer(Modifier.height(Spacing.xl))
         SectionCard {
-            AppButton(text = "从源下载", onClick = onDownload)
+            // v1.6：两个版本界面统一——没有源时先引导「配置自己的源」；
+            // 已经有源时才把「从源下载」放在最上面。
+            if (hasSource) {
+                AppButton(text = "从源下载", onClick = onDownload)
+                Spacer(Modifier.height(Spacing.sm))
+            }
+            AppButton(
+                text = "配置自己的源",
+                onClick = onOpenSources,
+                style = if (hasSource) AppButtonStyle.SECONDARY else AppButtonStyle.PRIMARY,
+            )
             Spacer(Modifier.height(Spacing.sm))
             AppButton(text = "本地导入", onClick = onLocalImport, style = AppButtonStyle.SECONDARY)
             Spacer(Modifier.height(Spacing.md))
             Text(
-                text = "点这里管理题库源（新建 / 删除 / 恢复默认源）",
+                text = "题库源是 WebDAV：填地址、账号、密码就能从源里下载题库；也可以先本地导入。",
                 style = AppText.caption,
                 color = c.textSecondary,
-                modifier = Modifier
-                    .clickable { onOpenSources() }
-                    .padding(vertical = Spacing.xs),
             )
         }
         if (hasLegacyData) {

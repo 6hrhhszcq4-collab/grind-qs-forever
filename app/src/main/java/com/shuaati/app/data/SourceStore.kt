@@ -271,7 +271,7 @@ class SourceStore(context: Context) {
         return persist(SourceSnapshot(current, list))
     }
 
-    /** 把内置默认源原样加回来，并设为当前源（社区版没有内置源，直接返回原快照） */
+    /** 把内置默认源原样加回来，并设为当前源（没有内置源时直接返回原快照） */
     fun restoreBuiltin(): SourceSnapshot {
         val snapshot = load()
         if (!HAS_BUILTIN_SOURCE || snapshot.hasBuiltin()) return snapshot
@@ -288,9 +288,9 @@ class SourceStore(context: Context) {
      * @return 默认源配置（restoreBuiltin 之后从内存快照里取，保证拿到的是同一份）
      */
     fun ensureBuiltinCurrent(): SourceConfig {
-        // 社区版没有内置源：直接报错（调用方是引导页「使用默认源」，该入口在社区版已隐藏）
+        // 没有内置源：直接报错
         if (!HAS_BUILTIN_SOURCE) {
-            throw IllegalStateException("这是社区版，没有内置题库源；请新建一个自己的源，或本地导入试卷")
+            throw IllegalStateException("没有内置题库源；请新建一个自己的源，或本地导入试卷")
         }
         val snapshot = if (load().hasBuiltin()) load() else restoreBuiltin()
         if (snapshot.currentSourceId != SourceConfig.BUILTIN_ID) setCurrent(SourceConfig.BUILTIN_ID)
@@ -313,7 +313,7 @@ class SourceStore(context: Context) {
 
     private fun read(): SourceSnapshot {
         if (!file.isFile) {
-            // v1.5：社区版没有内置源 → 首次创建就是空列表，等用户自己新增源
+            // 没有内置源 → 首次创建就是空列表，等用户自己新增源
             val snapshot = if (HAS_BUILTIN_SOURCE) {
                 SourceSnapshot(
                     currentSourceId = SourceConfig.BUILTIN_ID,
@@ -328,7 +328,7 @@ class SourceStore(context: Context) {
                 if (HAS_BUILTIN_SOURCE) {
                     "首次创建 sources.json：只含默认源 -> $filePath"
                 } else {
-                    "首次创建 sources.json：社区版无内置源，等用户新增 -> $filePath"
+                    "首次创建 sources.json：无内置源，等用户新增 -> $filePath"
                 },
             )
             return snapshot
@@ -340,9 +340,9 @@ class SourceStore(context: Context) {
             for (i in 0 until array.length()) {
                 val obj = array.optJSONObject(i) ?: continue
                 val source = SourceConfig.fromJson(obj, "source-$i")
-                // v1.5：社区版没有内置源——从特供版切过来时，遗留的默认源条目直接丢掉
+                // 没有内置源：遗留的默认源条目直接丢掉
                 if (source.isBuiltin && !HAS_BUILTIN_SOURCE) {
-                    Log.i(tag, "社区版忽略遗留的默认源条目：${source.id}")
+                    Log.i(tag, "忽略遗留的默认源条目：${source.id}")
                     continue
                 }
                 // 自定义源没有服务器地址等于不可用，直接跳过，不让界面出现点不动的行
