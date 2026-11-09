@@ -3,5 +3,8 @@
 <resources>
     <style name="Theme.Shuati" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@android:color/white</item>
+        <!-- 弹窗后面统一加半透明遮罩 -->
+        <item name="android:backgroundDimAmount">0.45</item>
+        <item name="android:backgroundDimEnabled">true</item>
     </style>
 </resources>

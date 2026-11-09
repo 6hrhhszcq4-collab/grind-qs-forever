@@ -16,6 +16,7 @@ import android.net.Uri
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -144,6 +145,7 @@ fun AboutScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(c.background)
             .systemBarsPadding(),
     ) {
         AppTopBar(title = "关于", onBack = onBack)
@@ -159,7 +161,10 @@ fun AboutScreen(
 
             // ===== 应用身份：图标 + 名称 + 版本号（连点 7 次 = 调试入口）=====
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onVersionTap() }
+                    .padding(vertical = Spacing.sm),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Image(
@@ -172,14 +177,12 @@ fun AboutScreen(
                 Spacer(Modifier.height(Spacing.md))
                 Text(text = "刷题", style = AppText.pageTitle, color = c.textPrimary)
                 Spacer(Modifier.height(Spacing.xs))
-                // 版本号整块可点：连点 7 次进调试入口（界面上不出现任何提示）
+                // 整个身份块可点：连点 7 次进调试入口（界面上不出现任何提示）
                 Text(
                     text = "版本 $versionName",
                     style = AppText.small,
                     color = c.textSecondary,
-                    modifier = Modifier
-                        .clickable { onVersionTap() }
-                        .padding(horizontal = Spacing.lg, vertical = Spacing.xs),
+                    modifier = Modifier.padding(horizontal = Spacing.lg, vertical = Spacing.xs),
                 )
             }
 
@@ -187,7 +190,7 @@ fun AboutScreen(
 
             // ===== 应用状态（只读）=====
             SectionCard(title = "应用") {
-                AboutRow(label = "版本号", value = versionText)
+                AboutRow(label = "版本号", value = versionText, onClick = { onVersionTap() })
                 HorizontalDivider(color = c.border)
                 AboutRow(label = "题库源", value = "${sources.size} 个")
                 HorizontalDivider(color = c.border)
@@ -371,13 +374,14 @@ fun AboutScreen(
     }
 }
 
-/** 「标签 —— 值」一行（只读信息行） */
+/** 「标签 —— 值」一行；onClick 不为空时可点（版本号那行也是连点入口） */
 @Composable
-private fun AboutRow(label: String, value: String) {
+private fun AboutRow(label: String, value: String, onClick: (() -> Unit)? = null) {
     val c = appColors()
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .padding(vertical = Spacing.md),
         verticalAlignment = Alignment.CenterVertically,
     ) {
